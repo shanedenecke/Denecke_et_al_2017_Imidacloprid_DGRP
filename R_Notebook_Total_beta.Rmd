@@ -26,19 +26,15 @@ version
 Next the analysis will require several packages. These packages can be installed and loaded into the R enviroment with the following chunk of code.
 
 ```{r, Load Packages}
-
-list.of.packages <- c("ggplot2","dplyr","ggplot2","tidyr","qqman","lme4","knitr","RCurl","R.utils")
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages)
-library(data.table)
-library(tidyr)
-library(dplyr)
-library(ggplot2)
-library(lme4)
-library(qqman)
-library(knitr)
-library(RCurl)
-library(R.utils)
+require(data.table)
+require(tidyr)
+require(dplyr)
+require(ggplot2)
+require(lme4)
+require(qqman)
+require(knitr)
+require(RCurl)
+require(R.utils)
 ```
 
 
@@ -560,7 +556,6 @@ annot <- mutate(annot,pval=equation.list)
 Much like Figure 3 the amount of each imidacloprid derivative can be vizualized for each genotype in the larval body and excreta. 
 
 ```{r Plot Figure 5,fig.height=8,fig.width=5}
-  gp <- ggplot(cyp6g1KO.hplc.data.plot,aes(x=genotype,y=measurement_value,fill=genotype))
       gp <- ggplot(cyp6g1KO.hplc.data.plot,aes(x=genotype,y=measurement_value,fill=genotype))
       gp <- gp+facet_grid(metabolite~measurement_type,scales="free_y")
       gp <- gp+labs(y="Quantity of Chemical\n",x="\nGenotype")
@@ -695,7 +690,7 @@ Then the data can be plotted considering two discriminatory doses (20 and 40ppm)
       gp <- gp+stat_summary(geom="errorbar",colour='black',size=1,width=.3,fun.data="mean_cl_normal")
       gp <- gp+stat_summary(fun.y="mean",fun.ymax="mean",fun.ymin="mean", geom="crossbar", width=.4,colour='black',size=.8)
       gp <- gp+geom_dotplot(binaxis='y',stackdir="center",dotsize=1.2)
-      gp <- gp+scale_fill_manual(values=c("black","magenta1","orange1")) 
+      gp <- gp+scale_fill_manual(values=c("grey50","magenta1","orange1")) 
       gp <- gp+labs(y="Relative Movement Ratio\n",x="\nGenotype")
       gp <- gp+geom_text(size=7,data=annot,aes(x, y, label=labs,fontface="bold",family="serif"),inherit.aes=FALSE,vjust=1.2,hjust=-.2)
       gp <- gp+theme_bw(base_size=14,base_family="serif")
@@ -764,7 +759,7 @@ gp <- gp+stat_summary(fun.y="mean",fun.ymax="mean",fun.ymin="mean", geom="crossb
 gp <- gp+geom_dotplot(binaxis='y', stackdir='center',dotsize=1.5) 
 gp <- gp+geom_text(size=7,data=annot,aes(x, y, label=labs,fontface="bold",family="serif"),inherit.aes=FALSE,vjust=1.2,hjust=-.2)
 gp <- gp+geom_text(size=7,data=annot,aes(1.5, y, label=pval,fontface="bold",family="serif"),inherit.aes=F,vjust=1.2)
-gp <- gp+scale_fill_manual(values=c("black","orange4")) 
+gp <- gp+scale_fill_manual(values=c("grey50","orange4")) 
 gp <- gp+theme_bw(base_size=14,base_family="serif")
 gp <- gp+g1KO.wiggle_theme
 print(gp)

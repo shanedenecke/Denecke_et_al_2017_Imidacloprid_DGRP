@@ -1,4 +1,4 @@
-wiggle.parse <- function(data,file.name="parsed.wiggle.data.csv",write=T){
+wiggle.parse <- function(data,file.name="parsed.wiggle.data.csv",write=F){
       split.frame <- matrix(unlist(strsplit(as.character(data$Image.Name),"\\).")),ncol=8,byrow=T)[,c(1:6,8)]
       split.frame <- gsub("\\(","",split.frame)
       split.frame <- gsub(".tif","",split.frame)
@@ -21,7 +21,7 @@ wiggle.parse <- function(data,file.name="parsed.wiggle.data.csv",write=T){
 
 
 
-wiggle.rmr <- function(data,file.name="rmr.wiggle.data.csv",write=T){
+wiggle.rmr <- function(data,file.name="rmr.wiggle.data.csv",write=F){
       library(tidyr)
       library(dplyr)
       spread.data <- spread(data,time,Wiggle.Index)
@@ -47,6 +47,10 @@ wiggle.rmr <- function(data,file.name="rmr.wiggle.data.csv",write=T){
 conf.diff <- function(data,level=.95){
       ci <- qnorm(1-((1-level)/2))*sd(data)/sqrt(length(data))
       return(ci)
+}
+
+se <- function(x){
+      return(sd(x)/sqrt(length(x)))
 }
 
 
@@ -75,9 +79,8 @@ dgrp.gwas.parse <- function(raw.gwas){
 }
 
 
-
 mod.encode.enrich <- function(raw.data.file="/home/sdenecke/Documents/Large_Files/External_Datasets/Modencode.tsv",
-                              gene.list=readLines("/home/sdenecke/Dropbox/PhD_Research/Research_Projects(Ongoing)/DGRP_Paper/Results/GWAS/Unique_GWAS_Candidate_List.txt"),
+                              gene.list=readLines("/home/sdenecke/Dropbox/PhD_Research/Research_Projects_Ongoing/DGRP_Paper/Results/GWAS/Unique_GWAS_Candidate_List.txt"),
                               parent.library="modENCODE_mRNA-Seq_tissues",
                               stage.search.string="L3",
                               tissue.search.string="CNS"){ 
@@ -89,8 +92,10 @@ mod.encode.enrich <- function(raw.data.file="/home/sdenecke/Documents/Large_File
             mutate(in.tissue.list=grepl(tissue.search.string,RNASource_name)) %>%
             group_by(in.tissue.list,GeneSymbol) %>% summarize(avg=mean(RPKM_value)) %>%
             spread(in.tissue.list,value=avg)
-      prop.enriched.subset <- length(which(Upreg.subset$`TRUE`>Upreg.subset$`FALSE`))/length(Upreg.subset$`TRUE`)
-      enriched.subset <- Upreg.subset %>% mutate(ratio=`TRUE`/`FALSE`) %>% arrange(desc(ratio))
+      prop.enriched.subset <- length(which(Upreg.subset$`TRUE`>2*Upreg.subset$`FALSE`))/length(Upreg.subset$`TRUE`)
+      enriched.subset <- Upreg.subset %>% mutate(ratio=`TRUE`/`FALSE`) %>%
+            filter(ratio>=2) %>%
+            arrange(desc(ratio))
       colnames(enriched.subset) <- c("GeneSymbol","Other.Tissues","Your.Tissue","Ratio")
       
       Upreg.genome <- raw.data.file %>% 
@@ -101,8 +106,9 @@ mod.encode.enrich <- function(raw.data.file="/home/sdenecke/Documents/Large_File
             group_by(in.tissue.list,GeneSymbol) %>% summarize(avg=mean(RPKM_value)) %>%
             spread(in.tissue.list,value=avg)  
       
-      prop.enriched.genome <- length(which(Upreg.genome$`TRUE`>Upreg.genome$`FALSE`))/length(Upreg.genome$`TRUE`)
+      prop.enriched.genome <- length(which(Upreg.genome$`TRUE`>2*Upreg.genome$`FALSE`))/length(Upreg.genome$`TRUE`)
       enriched.genome <- Upreg.genome %>% mutate(ratio=`TRUE`/`FALSE`) %>% 
+            filter(ratio>=2) %>%
             arrange(desc(ratio)) %>%
             mutate(in.gene.list=GeneSymbol %in% gene.list)
       
@@ -124,7 +130,6 @@ mod.encode.enrich <- function(raw.data.file="/home/sdenecke/Documents/Large_File
       names(significant.enrichment) <- "p.value"
       return(c(comparison,significant.enrichment))
 } 
-
 
 
 clean.all.associations <- function(all.assoc){
